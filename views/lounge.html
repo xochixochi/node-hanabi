@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Hanabi</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script type ="text/javascript" src="/socket.io/socket.io.js"></script>
+        <script type ="text/javascript" src="/js/main.js"></script>
+    </head>
+    <body>
+        <div id="lounge">
+            <h4>Welcome to</h4>
+            <h1>Hanabi</h1>
+
+            <button> Start Game </button>
+        </div>
+        <div id="board">
+            <ul id="player1cards">
+                <li class="card">
+                    <h1></h1>
+                </li>
+                <li class="card">
+                    <h1></h1>
+                </li>
+                <li class="card">
+                    <h1></h1>
+                </li>
+                <li class="card">
+                    <h1></h1>
+                </li>
+                <li class="card">
+                    <h1></h1>
+                </li>
+            </ul>
+            <div id="fireworks">
+                <ul id="fireworkscards">
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                </ul>
+            </div>
+            <div id="player2hand">
+                <ul id="player2cards">
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                    <li class="card">
+                        <h1></h1>
+                    </li>
+                </ul>
+                <div id="inform">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
