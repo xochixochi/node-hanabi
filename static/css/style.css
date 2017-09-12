@@ -60,6 +60,11 @@ h4 {
     background-color: white;
     color: black;
 }
+#turn {
+    height: 70px;
+    width: 100px;
+    background-color: white;
+}
 button {
     height: 5px;
     width: 5px;
