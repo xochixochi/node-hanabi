@@ -1,9 +1,8 @@
 $(document).ready(function() {
-    console.log("the javascript is working")
-    let socket = io.connect();
-    let room;
-    // let playerTurn;
-    let hands;
+    let socket = io.connect(),
+        room,
+        playerTurn,
+        hands;
 
     $("#start").on("click", () => {
         socket.emit("request_room")
@@ -15,7 +14,10 @@ $(document).ready(function() {
         $("#lounge").toggle(400);
         $("#board").toggle(400);
         hands = gameSetup.hands;
-        loadCards()
+        playerTurn = gameSetup.firstTurn;
+        loadCards();
+        changeTurn();
+
         // playerTurn = gameSetup.firstTurn;
     })
     socket.on("game_cancelled", msg => {
@@ -39,6 +41,14 @@ $(document).ready(function() {
         for (let i = 0; i < 5; i++) {
             $(".cp0" + i).text(hands[0][i].value)
             $(".cp0" + i).addClass(hands[0][i].suit)
+        }
+    }
+
+    function changeTurn() {
+        if (playerTurn) {
+            $("#turn > h1:first-child").text("Your Turn! Play a Card or Give a Hint")
+        } else {
+            $("#turn > h1:first-child").text("Your Partner's Turn!")
         }
     }
 })

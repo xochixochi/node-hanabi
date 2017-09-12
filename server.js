@@ -73,11 +73,11 @@ function closeRoom(playerId) {
 function startGame(room) {
     let firstPlayerSetup = {
             hands : [room.players[0].hand, room.players[1].hand],
-            startTurn : 0,
+            firstTurn : 0,
         },
         secondPlayerSetup = {
             hands : [room.players[1].hand, room.players[0].hand],
-            startTurn : 1
+            firstTurn : 1
         }
     io.to(room.players[0].id).emit("end_wait", secondPlayerSetup);
     io.to(room.players[1].id).emit("end_wait", firstPlayerSetup);
