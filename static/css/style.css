@@ -22,11 +22,6 @@ li {
     display: inline-block;
     vertical-align: top;
 }
-#lounge {
-    height: 330px;
-    width: 700px;
-    background-image: url("/css/hanabi_banner_620x3501.jpg");
-}
 .start {
     width: 70px;
     height: 70px;
@@ -49,6 +44,11 @@ h4 {
     padding-top: 50px;
     color: white;
 }
+#lounge {
+    height: 330px;
+    width: 700px;
+    background-image: url("/css/hanabi_banner_620x3501.jpg");
+}
 #board {
     display: none;
 }
@@ -64,8 +64,11 @@ h4 {
     background-color: white;
 }
 button {
-    height: 5px;
-    width: 5px;
+    height: 18px;
+    width: 18px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 10px;
 }
 
 .Red {

@@ -16,7 +16,8 @@ var server = app.listen(HOST, function() {
 })
 
 var io = require("socket.io").listen(server);
-var rooms = [];
+var rooms = {};
+var availableRoom;
 
 io.sockets.on("connection", function(socket) {
     console.log("socket is connected!");
@@ -41,33 +42,38 @@ io.sockets.on("connection", function(socket) {
 
 //Returns the next available room or a new room and list of players to notify
 function getRoom(socket_id) {
-    let mostRecentRoom = rooms[rooms.length - 1],
-        foundRoom;
-    //If no room available, create new room
-    if (!mostRecentRoom || mostRecentRoom.isFull()) {
+    let foundRoom;
+    //If no room available, create new room and mark it available
+    if (!availableRoom) {
         foundRoom = new Room();
-        rooms.push(foundRoom);
+        rooms[foundRoom.name] = foundRoom;
+        availableRoom = foundRoom;
     } else {
-        foundRoom = mostRecentRoom;
+    //Else fill availableRoom and mark it full
+        foundRoom = availableRoom;
+        availableRoom = undefined;
     }
-    //Add Player to room
+    //Add Player to found room
     foundRoom.addPlayer(socket_id);
     return foundRoom;
 }
 
-//Finds player's game room and deletes it. Notifies any other players in game room of deletion
+//Finds player's game room and deletes it. Notifies other player in game room of deletion
 function closeRoom(playerId) {
-    for (let roomNumber = 0; roomNumber < rooms.length; roomNumber++) {
+    for (let roomNumber in rooms) {
+        console.log(roomNumber)
+        console.log(rooms[roomNumber])
         disconnectedPlayer = getPlayer(rooms[roomNumber], playerId)
         if (disconnectedPlayer > -1) {
             if (rooms[roomNumber].isFull()) {
                 io.to(rooms[roomNumber].players[Math.abs(disconnectedPlayer - 1)].id)
                     .emit("game_cancelled", "The other Player left the game");
             }
-            rooms.splice(roomNumber, 1);
+            delete rooms[roomNumber]
             console.log("room removed******")
         }
     }
+    console.log("NO ROOM FOUND!!!!")
 }
 
 function startGame(room) {

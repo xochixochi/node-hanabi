@@ -37,13 +37,45 @@ $(document).ready(function() {
         room = room_name;
     })
 
+    $(".colorHint").hover(function() {
+        let color = $(this).siblings('p').get(0).className
+        for (let i = 0; i < 5; i++) {
+            if ($("#cp0" + i).get(0).className === color) {
+                $("#cp0" + i).siblings(".colorHint").css({"background-color" : color, "width" : "18px", "height" : "18px"})
+                $("#cp0" + i).parent().css("background-color", "#47477E")
+            }
+        }
+    }, function() {
+        for (let i = 0; i < 5; i++) {
+            $("#cp0" + i).siblings(".colorHint").css("background-color", "buttonface")
+            $("#cp0" + i).parent().css("background-color", "white")
+        }
+    })
+
+    $(".numberHint").hover(function() {
+        let number = $(this).siblings('p').text()
+        for (let i = 0; i < 5; i++) {
+            if ($("#cp0" + i).eq(0).text() === number) {
+                $("#cp0" + i).siblings(".numberHint").text(number)
+                $("#cp0" + i).parent().css("background-color", "#47477E")
+            }
+        }
+    }, function() {
+        for (let i = 0; i < 5; i++) {
+            $("#cp0" + i).siblings(".numberHint").text('')
+            $("#cp0" + i).parent().css("background-color", "white")
+        }
+    })
+
     function loadCards() {
         for (let i = 0; i < 5; i++) {
-            $(".cp0" + i).text(hands[0][i].value)
-            $(".cp0" + i).addClass(hands[0][i].suit)
+            $("#cp0" + i).text(hands[0][i].value)
+            $("#cp0" + i).addClass(hands[0][i].suit)
         }
     }
-
+    // function toggleHintPreview() {
+    //
+    // }
     function changeTurn() {
         if (playerTurn) {
             $("#turn > h1:first-child").text("Your Turn! Play a Card or Give a Hint")
