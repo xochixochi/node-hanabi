@@ -23,14 +23,12 @@ io.sockets.on("connection", function(socket) {
     console.log("Client/socketID = " + socket.id);
     //Join player to a game room and if the room is full notifies both players of game start
     socket.on("request_room", () => {
-        roomInfo = getRoom(socket.id);
-        socket.join(roomInfo.roomName);
-        io.to(socket.id).emit("return_room", roomInfo.roomName);
-        console.log("Socket " + socket.id + " Joined Room: " + roomInfo.roomName)
-        if (roomInfo.players.length === 2) {
-            roomInfo.players.forEach( player => {
-                io.to(player.id).emit("end_wait");
-            })
+        room = getRoom(socket.id);
+        socket.join(room.name);
+        io.to(socket.id).emit("return_room", room.name);
+        console.log("Socket " + socket.id + " Joined Room: " + room.name)
+        if (room.isFull()) {
+            startGame(room)
         }
     })
     //When User disconnects from Socket, close game room
@@ -54,22 +52,13 @@ function getRoom(socket_id) {
     }
     //Add Player to room
     foundRoom.addPlayer(socket_id);
-    return {
-        roomName: foundRoom.name,
-        players: foundRoom.players
-    }
+    return foundRoom;
 }
 
 //Finds player's game room and deletes it. Notifies any other players in game room of deletion
-function closeRoom(socket_id) {
+function closeRoom(playerId) {
     for (let roomNumber = 0; roomNumber < rooms.length; roomNumber++) {
-        let disconnectedPlayer = -1;
-        if (rooms[roomNumber].players[0].id === socket_id) {
-            disconnectedPlayer = 0;
-        }
-        if (rooms[roomNumber].isFull() && rooms[roomNumber].players[1].id === socket_id) {
-            disconnectedPlayer = 1;
-        }
+        disconnectedPlayer = getPlayer(rooms[roomNumber], playerId)
         if (disconnectedPlayer > -1) {
             if (rooms[roomNumber].isFull()) {
                 io.to(rooms[roomNumber].players[Math.abs(disconnectedPlayer - 1)].id)
@@ -79,6 +68,29 @@ function closeRoom(socket_id) {
             console.log("room removed******")
         }
     }
+}
+
+function startGame(room) {
+    let firstPlayerSetup = {
+            hands : [room.players[0].hand, room.players[1].hand],
+            startTurn : 0,
+        },
+        secondPlayerSetup = {
+            hands : [room.players[1].hand, room.players[0].hand],
+            startTurn : 1
+        }
+    io.to(room.players[0].id).emit("end_wait", secondPlayerSetup);
+    io.to(room.players[1].id).emit("end_wait", firstPlayerSetup);
+}
+
+function getPlayer(room, playerId) {
+    if (room.players[0].id === playerId) {
+        return 0
+    }
+    if (room.isFull() && room.players[1].id === playerId) {
+        return 1
+    }
+    return -1
 }
 
 class Room {
@@ -127,7 +139,7 @@ class Card {
         this.suit  = suit;
         this.value = value;
         this.suitClue = false;
-        this.suitClue = false;
+        this.valueClue = false;
     }
 }
 
@@ -138,7 +150,7 @@ class Deck {
     reset() {
         this.deck = [];
         let values = [1,1,1,2,2,3,3,4,4,5];
-        let suits = ["Blue", "Red", "Green", "White", "Yellow"];
+        let suits = ["Blue", "Red", "Green", "Black", "Yellow"];
         suits.forEach( suit => { values.forEach( value => { this.deck.push(new Card(suit, value)) }) })
         return this;
     }
