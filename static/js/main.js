@@ -1,19 +1,25 @@
 $(document).ready(function() {
+    console.log("the javascript is working")
     var socket = io.connect();
-
-    $("form").submit(function(e) {
-        e.preventDefault();
-        var formData = {};
-        $("form").serializeArray().forEach(function(formItem) {
-            formData[formItem.name] = formItem.value;
-        })
-        console.log("emitting");
-        socket.emit("submitform", formData);
+    var room;
+    $("#start").on("click", () => {
+        socket.emit("request_room")
+        $("#start").toggle(400);
+        $("#w").toggle(400);
     })
-
-    socket.on( 'form_response', function (data){
-        console.log( 'The server says: ')
-        console.log(data);
-        $("#result").text( "You emitted the following information to the server " + JSON.stringify(data));
-    });
+    socket.on("end_wait", () => {
+        $("#lounge").toggle(400);
+        $("#board").toggle(400);
+        $("#start").toggle();
+        $("#w").toggle();
+    })
+    socket.on("game canceled", msg => {
+        $("#lounge").toggle(400);
+        $("#board").toggle(400);
+        alert(msg);
+    })
+    socket.on("return_room", room_name => {
+        console.log(" I am socket" + socket.id + " in room " + room_name);
+        room = room_name;
+    })
 })
