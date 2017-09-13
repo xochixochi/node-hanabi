@@ -39,9 +39,11 @@ io.sockets.on("connection", function(socket) {
     })
 
     socket.on("give_hint", gameData => {
+        console.log("my room is " + gameData.room)
         let gameRoom = rooms[gameData.room],
-            player = getPlayer(gameRoom, socket.id),
-            otherPlayersHand = gameRoom.players[Math.abs(player - 1)].hand;
+            playerIdx = getPlayer(gameRoom, socket.id),
+            otherPlayersHand = gameRoom.players[otherPlayerIdx(playerIdx)].hand;
+
         for (let card of otherPlayersHand) {
             if (card.suit === gameData.hint) {
                 card.suitClue = true;
@@ -49,11 +51,47 @@ io.sockets.on("connection", function(socket) {
                 card.valueClue = true;
             }
         }
-        let newPlayerHands = [otherPlayersHand, gameRoom.players[player].hand];
-        let newOtherHands = [gameRoom.players[player].hand, otherPlayersHand];
 
-        io.to(socket.id).emit("new_hands", newPlayerHands);
-        io.to(gameRoom.players[Math.abs(player - 1)].id).emit("new_hands", newOtherHands);
+        gameRoom.hints -= 1;
+        io.to(socket.id).emit("end_turn", new ReturnData(gameRoom, playerIdx));
+        io.to(gameRoom.players[otherPlayerIdx(playerIdx)].id).emit("end_turn", new ReturnData(gameRoom, otherPlayerIdx(playerIdx)));
+    })
+
+    socket.on("play_card", gameData => {
+        let gameRoom = rooms[gameData.room],
+            playerIdx = getPlayer(gameRoom, socket.id),
+            card = gameRoom.players[playerIdx].hand[gameData.cardHandIdx],
+            stackFound = false;
+            suitFound = false;
+
+        //Deal new card to replace played card
+        gameRoom.players[playerIdx].hand[gameData.cardHandIdx] = gameRoom.deck.deal();
+        for (let i = 0; i < gameRoom.fireworks.length; i++) {
+            if (gameRoom.fireworks[i].suit === card.suit) {
+                suitFound = true;
+
+                if (gameRoom.fireworks[i].value === card.value - 1) {
+                    stackFound = true;
+                    console.log("you found the next higher card!!")
+                    gameRoom.fireworks[i] = card;
+                } else {
+                    break;
+                }
+            }
+        }
+        if (!stackFound && !suitFound && card.value === 1) {
+            gameRoom.fireworks.push(card);
+            stackFound = true;
+        } else {
+            gameRoom.busts -= 1;
+        }
+
+        if (gameRoom.deck.length === 0 || gameRoom.busts === 0) {
+            checkWin();
+        } else {
+            io.to(socket.id).emit("end_turn", new ReturnData(gameRoom, playerIdx));
+            io.to(gameRoom.players[otherPlayerIdx(playerIdx)].id).emit("end_turn", new ReturnData(gameRoom, otherPlayerIdx(playerIdx)));
+        }
     })
 })
 
@@ -118,13 +156,35 @@ function getPlayer(room, playerId) {
     return -1
 }
 
+function checkWin() {
+
+}
+
+function otherPlayerIdx(playerIdx) {
+    return Math.abs(playerIdx - 1);
+}
+
+class ReturnData {
+    constructor(gameRoom, playerIdx) {
+        this.room = gameRoom.name;
+        this.busts = gameRoom.busts;
+        this.hints = gameRoom.hints;
+        this.hands = [
+            gameRoom.players[otherPlayerIdx(playerIdx)].hand,
+            gameRoom.players[playerIdx].hand,
+            gameRoom.fireworks
+        ];
+        this.gameOver = gameRoom.gameOver;
+    }
+}
+
 class Room {
     constructor() {
         this.name = uuidv1();
         this.deck = new Deck();
         this.players = [];
         this.fireworks = [];
-        this.guesses = 8;
+        this.hints = 8;
         this.busts = 3;
     }
     newGame() {

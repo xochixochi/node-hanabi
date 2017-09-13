@@ -6,7 +6,7 @@ $(document).ready(function() {
         hints,
         busts,
         turnCompleting = false,
-        selectedCardHandIndex = -1;
+        selectedcardHandIdx = -1;
 
     $("#start").on("click", () => {
         socket.emit("request_room")
@@ -23,13 +23,14 @@ $(document).ready(function() {
         playerTurn = gameSetup.firstTurn;
         hints = 8;
         busts = 3;
-        turnCompleting = false;
+        // turnCompleting = false;
+
         loadP0Cards();
         loadP1Cards();
         toggleTurnDisplay();
         toggleActionButtons(0);
-        alterHint(0)
-        // playerTurn = gameSetup.firstTurn;
+        alterHints(0);
+        alterBusts(0);
     })
 
     socket.on("game_cancelled", msg => {
@@ -45,16 +46,28 @@ $(document).ready(function() {
         });
     })
 
-    socket.on("new_hands", newHands => {
+    socket.on("end_turn", gameData => {
         playerTurn = Math.abs(playerTurn - 1)
-        hands = newHands;
-        if (selectedCardHandIndex !== -1) {
-            $("cp1" + selectedCardHandIndex).css("background-color", "white");
-            selectedCardHandIndex = -1;
+        hands = gameData.hands;
+        hints = gameData.hints;
+        console.log("hints are " + gameData.hints + " of type " + typeof gameData.hints)
+        console.log(gameData.hints)
+        busts = gameData.busts;
+        //check if gameOver
+
+        if (selectedcardHandIdx !== -1) {
+            $("cp1" + selectedcardHandIdx).css("background-color", "white");
+            selectedcardHandIdx = -1;
         }
         loadP0Cards();
         loadP1Cards();
+        loadFireworkCards();
+        alterHints(0);
+        alterBusts(0);
+        loadFireworkCards();
         toggleTurnDisplay();
+        toggleActionButtons(0);
+
         console.log("New hands have arrived")
         console.log(hands)
     })
@@ -80,7 +93,7 @@ $(document).ready(function() {
 
     $(".colorHint").click(function() {
         if(playerTurn && hints > 0) {
-            alterHint(-1);
+            alterHints(-1);
             socket.emit("give_hint", {hint: $(this).siblings('p').get(0).className, room: room})
         }
     })
@@ -106,7 +119,7 @@ $(document).ready(function() {
 
     $(".valueHint").click(function() {
         if(playerTurn && hints > 0) {
-            alterHint(-1);
+            alterHints(-1);
             socket.emit("give_hint", {hint: $(this).siblings('p').text(), room: room})
         }
     })
@@ -116,7 +129,7 @@ $(document).ready(function() {
             $(this).css("background-color", "#47477E")
         }
     }, function() {
-        if(playerTurn && !(getHandIndexOfCard(this.childNodes[1]) == selectedCardHandIndex)) {
+        if(playerTurn && !(getHandIndexOfCard(this.childNodes[1]) == selectedcardHandIdx)) {
             $(this).css("background-color", "white")
         }
     })
@@ -124,19 +137,35 @@ $(document).ready(function() {
     $(".card.p2").click(function() {
         if(playerTurn) {
             $(this).css("background-color", "#47477E");
-            if (selectedCardHandIndex !== -1) {
-                $("#cp1" + selectedCardHandIndex).parent().css("background-color", "white")
+            if (selectedcardHandIdx !== -1) {
+                $("#cp1" + selectedcardHandIdx).parent().css("background-color", "white")
             }
-            selectedCardHandIndex = getHandIndexOfCard(this.childNodes[1])
+            selectedcardHandIdx = getHandIndexOfCard(this.childNodes[1])
             toggleActionButtons(1);
         }
     })
 
     $("#left-board").click(function() {
-        if (selectedCardHandIndex > -1) {
-            $("#cp1" + selectedCardHandIndex).parent().css("background-color", "white")
-            selectedCardHandIndex = -1;
+        if (selectedcardHandIdx > -1) {
+            $("#cp1" + selectedcardHandIdx).parent().css("background-color", "white")
+            selectedcardHandIdx = -1;
             toggleActionButtons(0);
+        }
+    })
+
+    $("#play-card").click(function() {
+        if (playerTurn && selectedcardHandIdx > -1) {
+            //activate endofturn mode
+            toggleActionButtons(0);
+            $("#cp1" + selectedcardHandIdx).parent().css("background-color", "white");
+            $("#cp1" + selectedcardHandIdx).text("")
+            $("#cp1" + selectedcardHandIdx).attr("class", "")
+            socket.emit("play_card", {"room": room, "cardHandIdx": selectedcardHandIdx });
+        }
+    })
+    $("#discard-card").click(function() {
+        if (playerTurn && selectedcardHandIdx > -1) {
+            socket.emit("discard_card")
         }
     })
 
@@ -165,7 +194,7 @@ $(document).ready(function() {
     function loadP1Cards() {
         for (let i = 0; i < 5; i++) {
             if (hands[1][i].valueClue) {
-                $("#cp1" + i).text("" + hands[1][i].value)
+                $("#cp1" + i).text(hands[1][i].value)
             }
             if (hands[1][i].suitClue) {
                 $("#cp1" + i).attr('class', hands[1][i].suit)
@@ -176,9 +205,22 @@ $(document).ready(function() {
         }
     }
 
-    function alterHint(amount) {
+    function loadFireworkCards() {
+        for (let i = 0; i < hands[2].length; i++) {
+            $("#cf" + i).parent().attr("class", "card");
+            $("#cf" + i).text(hands[2][i].value);
+            $("#cf" + i).attr("class", hands[2][i].suit);
+        }
+    }
+
+    function alterHints(amount) {
         hints += amount;
         $("#right-board > ul li:first-of-type p:last-of-type").text(hints)
+    }
+
+    function alterBusts(amount) {
+        busts += amount;
+        $("#right-board > ul li:last-of-type p:last-of-type").text(busts)
     }
 
     function toggleActionButtons(state) {
