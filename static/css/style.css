@@ -15,6 +15,9 @@ body {
     border-radius: 10px;
     text-align: center;
 }
+.p2 {
+    color: gray;
+}
 ul {
     list-style: none;
 }

@@ -15,11 +15,11 @@ $(document).ready(function() {
         $("#board").toggle(400);
         hands = gameSetup.hands;
         playerTurn = gameSetup.firstTurn;
-        loadCards();
-        changeTurn();
-
+        loadP0Cards();
+        changeTurnDisplay();
         // playerTurn = gameSetup.firstTurn;
     })
+
     socket.on("game_cancelled", msg => {
         $("#wait").toggle(() => {
             $("#start").toggle(() => {
@@ -37,46 +37,96 @@ $(document).ready(function() {
         room = room_name;
     })
 
+    socket.on("new_hands", newHands => {
+        playerTurn = Math.abs(playerTurn - 1)
+        // console.log()
+        hands = newHands;
+        loadP0Cards();
+        loadP1Cards();
+        changeTurnDisplay();
+        console.log("New hands have arrived")
+    })
+
     $(".colorHint").hover(function() {
-        let color = $(this).siblings('p').get(0).className
-        for (let i = 0; i < 5; i++) {
-            if ($("#cp0" + i).get(0).className === color) {
-                $("#cp0" + i).siblings(".colorHint").css({"background-color" : color, "width" : "18px", "height" : "18px"})
-                $("#cp0" + i).parent().css("background-color", "#47477E")
+        if(playerTurn) {
+            let color = $(this).siblings('p').get(0).className
+            for (let i = 0; i < 5; i++) {
+                if ($("#cp0" + i).get(0).className === color) {
+                    $("#cp0" + i).siblings(".colorHint").css({"background-color" : color, "width" : "18px", "height" : "18px"})
+                    $("#cp0" + i).parent().css("background-color", "#47477E")
+                }
             }
         }
     }, function() {
         for (let i = 0; i < 5; i++) {
-            $("#cp0" + i).siblings(".colorHint").css("background-color", "buttonface")
+            if (!hands[0][i].suitClue) {
+                $("#cp0" + i).siblings(".colorHint").css("background-color", "buttonface")
+            }
             $("#cp0" + i).parent().css("background-color", "white")
         }
     })
 
-    $(".numberHint").hover(function() {
-        let number = $(this).siblings('p').text()
-        for (let i = 0; i < 5; i++) {
-            if ($("#cp0" + i).eq(0).text() === number) {
-                $("#cp0" + i).siblings(".numberHint").text(number)
-                $("#cp0" + i).parent().css("background-color", "#47477E")
+    $(".colorHint").click(function() {
+        if(playerTurn) {
+            socket.emit("give_hint", {hint: $(this).siblings('p').get(0).className, room: room})
+        }
+    })
+
+    $(".valueHint").hover(function() {
+        if(playerTurn) {
+            let value = $(this).siblings('p').text()
+            for (let i = 0; i < 5; i++) {
+                if ($("#cp0" + i).eq(0).text() === value) {
+                    $("#cp0" + i).siblings(".valueHint").text(value)
+                    $("#cp0" + i).parent().css("background-color", "#47477E")
+                }
             }
         }
     }, function() {
         for (let i = 0; i < 5; i++) {
-            $("#cp0" + i).siblings(".numberHint").text('')
+            if (!hands[0][i].valueClue) {
+                $("#cp0" + i).siblings(".valueHint").text('')
+            }
             $("#cp0" + i).parent().css("background-color", "white")
         }
     })
 
-    function loadCards() {
+    $(".valueHint").click(function() {
+        if(playerTurn) {
+            socket.emit("give_hint", {hint: $(this).siblings('p').text(), room: room})
+        }
+    })
+
+    function loadP0Cards() {
         for (let i = 0; i < 5; i++) {
             $("#cp0" + i).text(hands[0][i].value)
             $("#cp0" + i).addClass(hands[0][i].suit)
+
+            if (hands[0][i].valueClue) {
+                $("#cp0" + i).siblings('.valueHint').eq(0).text(hands[0][i].value)
+            }
+            if (hands[0][i].suitClue) {
+                $("#cp0" + i).siblings('.colorHint').eq(0).css({"background-color" : hands[0][i].suit, "width" : "18px", "height" : "18px"})
+            }
         }
     }
-    // function toggleHintPreview() {
-    //
-    // }
-    function changeTurn() {
+
+    function loadP1Cards() {
+        for (let i = 0; i < 5; i++) {
+            if (hands[1][i].valueClue) {
+                console.log("should be adding text!!")
+                $("#cp1" + i).text("" + hands[1][i].value)
+            }
+            if (hands[1][i].suitClue) {
+                $("#cp1" + i).addClass(hands[1][i].suit)
+                if ($("#cp1" + i).text() === "") {
+                    $("#cp1" + i).text("?");
+                }
+            }
+        }
+    }
+
+    function changeTurnDisplay() {
         if (playerTurn) {
             $("#turn > h1:first-child").text("Your Turn! Play a Card or Give a Hint")
         } else {

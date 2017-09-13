@@ -38,6 +38,25 @@ io.sockets.on("connection", function(socket) {
         console.log("*****************");
         closeRoom(socket.id);
     })
+
+    socket.on("give_hint", gameData => {
+        let gameRoom = rooms[gameData.room],
+            player = getPlayer(gameRoom, socket.id),
+            otherPlayersHand = gameRoom.players[Math.abs(player - 1)].hand;
+        for (let card of otherPlayersHand) {
+            if (card.suit === gameData.hint) {
+                card.suitClue = true;
+            } else if (card.value == gameData.hint) {
+                console.log("setting true!")
+                card.valueClue = true;
+            }
+        }
+        let newPlayerHands = [otherPlayersHand, gameRoom.players[player].hand];
+        let newOtherHands = [gameRoom.players[player].hand, otherPlayersHand];
+
+        io.to(socket.id).emit("new_hands", newPlayerHands);
+        io.to(gameRoom.players[Math.abs(player - 1)].id).emit("new_hands", newOtherHands);
+    })
 })
 
 //Returns the next available room or a new room and list of players to notify
@@ -127,8 +146,8 @@ class Room {
 }
 
 class Player {
-    constructor(id, deck) {
-        this.id = id;
+    constructor(playerId, deck) {
+        this.id = playerId;
         this.newHand(deck);
     }
     newHand(deck) {
