@@ -20,8 +20,7 @@ var rooms = {};
 var availableRoom;
 
 io.sockets.on("connection", function(socket) {
-    console.log("socket is connected!");
-    console.log("Client/socketID = " + socket.id);
+    console.log("socket " + socket.id + " is connected!");
     //Join player to a game room and if the room is full notifies both players of game start
     socket.on("request_room", () => {
         room = getRoom(socket.id);
@@ -34,7 +33,7 @@ io.sockets.on("connection", function(socket) {
     })
     //When User disconnects from Socket, close game room
     socket.on("disconnect", () => {
-        console.log(socket.id);
+        console.log("socket disconnecting: " + socket.id );
         console.log("*****************");
         closeRoom(socket.id);
     })
@@ -47,7 +46,6 @@ io.sockets.on("connection", function(socket) {
             if (card.suit === gameData.hint) {
                 card.suitClue = true;
             } else if (card.value == gameData.hint) {
-                console.log("setting true!")
                 card.valueClue = true;
             }
         }
@@ -80,32 +78,37 @@ function getRoom(socket_id) {
 //Finds player's game room and deletes it. Notifies other player in game room of deletion
 function closeRoom(playerId) {
     for (let roomNumber in rooms) {
-        console.log(roomNumber)
-        console.log(rooms[roomNumber])
-        disconnectedPlayer = getPlayer(rooms[roomNumber], playerId)
+        // console.log(roomNumber)
+        // console.log(rooms[roomNumber]);
+        disconnectedPlayer = getPlayer(rooms[roomNumber], playerId);
+        console.log("the players index is " + disconnectedPlayer );
         if (disconnectedPlayer > -1) {
             if (rooms[roomNumber].isFull()) {
+                console.log("room was full")
                 io.to(rooms[roomNumber].players[Math.abs(disconnectedPlayer - 1)].id)
                     .emit("game_cancelled", "The other Player left the game");
             }
-            delete rooms[roomNumber]
-            console.log("room removed******")
+            delete rooms[roomNumber];
+            console.log("room removed: " + roomNumber);
+            return;
         }
     }
-    console.log("NO ROOM FOUND!!!!")
+    console.log("NO ROOM FOUND!!!!");
 }
 
 function startGame(room) {
     let firstPlayerSetup = {
+            room : room.name,
             hands : [room.players[0].hand, room.players[1].hand],
             firstTurn : 0,
         },
         secondPlayerSetup = {
+            room : room.name,
             hands : [room.players[1].hand, room.players[0].hand],
             firstTurn : 1
         }
-    io.to(room.players[0].id).emit("end_wait", secondPlayerSetup);
-    io.to(room.players[1].id).emit("end_wait", firstPlayerSetup);
+    io.to(room.players[0].id).emit("start_game", secondPlayerSetup);
+    io.to(room.players[1].id).emit("start_game", firstPlayerSetup);
 }
 
 function getPlayer(room, playerId) {
