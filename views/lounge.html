@@ -17,78 +17,120 @@
             </div>
         </div>
         <div id="board">
-            <ul id="player1cards">
-                <li class="card p1">
-                    <p id="cp00"></p>
-                    <button class="colorHint"></button>
-                    <button class="valueHint"></button>
-                </li>
-                <li class="card p1">
-                    <p id="cp01"></p>
-                    <button class="colorHint"></button>
-                    <button class="valueHint"></button>
-                </li>
-                <li class="card p1">
-                    <p id="cp02"></p>
-                    <button class="colorHint"></button>
-                    <button class="valueHint"></button>
-                </li>
-                <li class="card p1">
-                    <p id="cp03"></p>
-                    <button class="colorHint"></button>
-                    <button class="valueHint"></button>
-                </li>
-                <li class="card p1">
-                    <p id="cp04"></p>
-                    <button class="colorHint"></button>
-                    <button class="valueHint"></button>
-                </li>
-            </ul>
-            <div id="fireworks">
-                <ul id="fireworkscards">
-                    <li class="emptyCard">
-                        <p></p>
+            <div id="left-board">
+                <div class="side-label">
+                    <p>Partner's Hand</p>
+                </div>
+                <ul id="player1cards">
+                    <li class="card p1">
+                        <p id="cp00"></p>
+                        <button class="colorHint"></button>
+                        <button class="valueHint"></button>
                     </li>
-                    <li class="emptyCard">
-                        <p></p>
+                    <li class="card p1">
+                        <p id="cp01"></p>
+                        <button class="colorHint"></button>
+                        <button class="valueHint"></button>
                     </li>
-                    <li class="emptyCard">
-                        <p></p>
+                    <li class="card p1">
+                        <p id="cp02"></p>
+                        <button class="colorHint"></button>
+                        <button class="valueHint"></button>
                     </li>
-                    <li class="emptyCard">
-                        <p></p>
+                    <li class="card p1">
+                        <p id="cp03"></p>
+                        <button class="colorHint"></button>
+                        <button class="valueHint"></button>
                     </li>
-                    <li class="emptyCard">
-                        <p></p>
+                    <li class="card p1">
+                        <p id="cp04"></p>
+                        <button class="colorHint"></button>
+                        <button class="valueHint"></button>
                     </li>
                 </ul>
-                <div id="tokens">
+                <div id="fireworks">
+                    <div class="side-label">
+                        <p>Firework Assembly</p>
+                    </div>
+                    <ul id="fireworkscards">
+                        <li class="emptyCard">
+                            <p></p>
+                        </li>
+                        <li class="emptyCard">
+                            <p></p>
+                        </li>
+                        <li class="emptyCard">
+                            <p></p>
+                        </li>
+                        <li class="emptyCard">
+                            <p></p>
+                        </li>
+                        <li class="emptyCard">
+                            <p></p>
+                        </li>
+                    </ul>
+                    <div id="tokens">
 
+                    </div>
+                </div>
+                <div id="turn">
+                    <h1></h1>
                 </div>
             </div>
-            <div id="player2hand">
-                <ul id="player2cards">
-                    <li class="card p2">
-                        <p id="cp10"></p>
+            <div id="right-board">
+                <div id="played-card">
+                    <h3></h3>
+                    <div class="emptyCard">
+                        <p></p>
+                    </div>
+                </div>
+                <ul>
+                    <li>
+                        <p>Hints:</p>
+                        <p></p>
                     </li>
-                    <li class="card p2">
-                        <p id="cp11"></p>
-                    </li>
-                    <li class="card p2">
-                        <p id="cp12"></p>
-                    </li>
-                    <li class="card p2">
-                        <p id="cp13"></p>
-                    </li>
-                    <li class="card p2">
-                        <p id="cp14"></p>
+                    <li>
+                        <p>Busts:</p>
+                        <p></p>
                     </li>
                 </ul>
-                <div id="inform">
+                <div id="player2hand">
+                    <div>
+                        <div class="side-label">
+                            <p>Your Hand</p>
+                        </div>
+                        <ul id="player2cards">
+                            <li class="card p2">
+                                <p id="cp10"></p>
+                            </li>
+                            <li class="card p2">
+                                <p id="cp11"></p>
+                            </li>
+                            <li class="card p2">
+                                <p id="cp12"></p>
+                            </li>
+                            <li class="card p2">
+                                <p id="cp13"></p>
+                            </li>
+                            <li class="card p2">
+                                <p id="cp14"></p>
+                            </li>
+                        </ul>
+                    </div>
+                    <ul>
+                        <li>
+                            <button class="action-button" type="button" name="play">
+                                Play Card
+                            </button>
+                        </li>
+                        <li >
+                            <button class="action-button" type="button" name="discard">
+                                Discard Card
+                            </button>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-            <div id="turn">
-                <h1></h1>
+
             </div>
         </div>
     </body>

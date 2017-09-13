@@ -2,7 +2,11 @@ $(document).ready(function() {
     let socket = io.connect(),
         room,
         playerTurn,
-        hands;
+        hands,
+        hints,
+        busts,
+        turnCompleting = false,
+        selectedCardHandIndex = -1;
 
     $("#start").on("click", () => {
         socket.emit("request_room")
@@ -17,9 +21,14 @@ $(document).ready(function() {
         room = gameSetup.room;
         hands = gameSetup.hands;
         playerTurn = gameSetup.firstTurn;
+        hints = 8;
+        busts = 3;
+        turnCompleting = false;
         loadP0Cards();
         loadP1Cards();
-        changeTurnDisplay();
+        toggleTurnDisplay();
+        toggleActionButtons(0);
+        alterHint(0)
         // playerTurn = gameSetup.firstTurn;
     })
 
@@ -38,11 +47,14 @@ $(document).ready(function() {
 
     socket.on("new_hands", newHands => {
         playerTurn = Math.abs(playerTurn - 1)
-        // console.log()
         hands = newHands;
+        if (selectedCardHandIndex !== -1) {
+            $("cp1" + selectedCardHandIndex).css("background-color", "white");
+            selectedCardHandIndex = -1;
+        }
         loadP0Cards();
         loadP1Cards();
-        changeTurnDisplay();
+        toggleTurnDisplay();
         console.log("New hands have arrived")
         console.log(hands)
     })
@@ -67,7 +79,8 @@ $(document).ready(function() {
     })
 
     $(".colorHint").click(function() {
-        if(playerTurn) {
+        if(playerTurn && hints > 0) {
+            alterHint(-1);
             socket.emit("give_hint", {hint: $(this).siblings('p').get(0).className, room: room})
         }
     })
@@ -92,10 +105,44 @@ $(document).ready(function() {
     })
 
     $(".valueHint").click(function() {
-        if(playerTurn) {
+        if(playerTurn && hints > 0) {
+            alterHint(-1);
             socket.emit("give_hint", {hint: $(this).siblings('p').text(), room: room})
         }
     })
+
+    $(".card.p2").hover(function() {
+        if(playerTurn) {
+            $(this).css("background-color", "#47477E")
+        }
+    }, function() {
+        if(playerTurn && !(getHandIndexOfCard(this.childNodes[1]) == selectedCardHandIndex)) {
+            $(this).css("background-color", "white")
+        }
+    })
+
+    $(".card.p2").click(function() {
+        if(playerTurn) {
+            $(this).css("background-color", "#47477E");
+            if (selectedCardHandIndex !== -1) {
+                $("#cp1" + selectedCardHandIndex).parent().css("background-color", "white")
+            }
+            selectedCardHandIndex = getHandIndexOfCard(this.childNodes[1])
+            toggleActionButtons(1);
+        }
+    })
+
+    $("#left-board").click(function() {
+        if (selectedCardHandIndex > -1) {
+            $("#cp1" + selectedCardHandIndex).parent().css("background-color", "white")
+            selectedCardHandIndex = -1;
+            toggleActionButtons(0);
+        }
+    })
+
+    function getHandIndexOfCard(cardDOMElement) {
+        return cardDOMElement.getAttribute('id').charAt(cardDOMElement.getAttribute('id').length - 1);
+    }
 
     function loadP0Cards() {
         for (let i = 0; i < 5; i++) {
@@ -129,7 +176,24 @@ $(document).ready(function() {
         }
     }
 
-    function changeTurnDisplay() {
+    function alterHint(amount) {
+        hints += amount;
+        $("#right-board > ul li:first-of-type p:last-of-type").text(hints)
+    }
+
+    function toggleActionButtons(state) {
+        let buttons = $(".action-button").get()
+        if (state) {
+            buttons.forEach(button => {
+                button.style.display = 'inline-block'
+            });
+        } else {
+            buttons.forEach(button => {
+                button.style.display = 'none'
+            });
+        }
+    }
+    function toggleTurnDisplay() {
         if (playerTurn) {
             $("#turn > h1:first-child").text("Your Turn! Play a Card or Give a Hint")
         } else {

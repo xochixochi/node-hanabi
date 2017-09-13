@@ -78,8 +78,6 @@ function getRoom(socket_id) {
 //Finds player's game room and deletes it. Notifies other player in game room of deletion
 function closeRoom(playerId) {
     for (let roomNumber in rooms) {
-        // console.log(roomNumber)
-        // console.log(rooms[roomNumber]);
         disconnectedPlayer = getPlayer(rooms[roomNumber], playerId);
         console.log("the players index is " + disconnectedPlayer );
         if (disconnectedPlayer > -1) {
@@ -93,7 +91,6 @@ function closeRoom(playerId) {
             return;
         }
     }
-    console.log("NO ROOM FOUND!!!!");
 }
 
 function startGame(room) {
@@ -126,6 +123,7 @@ class Room {
         this.name = uuidv1();
         this.deck = new Deck();
         this.players = [];
+        this.fireworks = [];
         this.guesses = 8;
         this.busts = 3;
     }
