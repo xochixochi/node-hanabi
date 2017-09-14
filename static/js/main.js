@@ -5,6 +5,7 @@ $(document).ready(function() {
         hands,
         hints,
         busts,
+        deckSize,
         turnCompleting = false,
         selectedcardHandIdx = -1;
 
@@ -21,6 +22,7 @@ $(document).ready(function() {
         room = gameSetup.room;
         hands = gameSetup.hands;
         playerTurn = gameSetup.firstTurn;
+        deckSize = gameSetup.deckSize;
         hints = 8;
         busts = 3;
         // turnCompleting = false;
@@ -29,6 +31,7 @@ $(document).ready(function() {
         loadP1Cards();
         toggleTurnDisplay();
         toggleActionButtons(0);
+        updateDeckSize();
         alterHints(0);
         alterBusts(0);
     })
@@ -160,12 +163,16 @@ $(document).ready(function() {
             $("#cp1" + selectedcardHandIdx).parent().css("background-color", "white");
             $("#cp1" + selectedcardHandIdx).text("")
             $("#cp1" + selectedcardHandIdx).attr("class", "")
-            socket.emit("play_card", {"room": room, "cardHandIdx": selectedcardHandIdx });
+            socket.emit("play_card", {"room": room, "cardHandIdx": selectedcardHandIdx});
         }
     })
     $("#discard-card").click(function() {
+        toggleActionButtons(0);
+        $("#cp1" + selectedcardHandIdx).parent().css("background-color", "white");
+        $("#cp1" + selectedcardHandIdx).text("")
+        $("#cp1" + selectedcardHandIdx).attr("class", "")
         if (playerTurn && selectedcardHandIdx > -1) {
-            socket.emit("discard_card")
+            socket.emit("discard_card", {"room": room, "cardHandIdx": selectedcardHandIdx})
         }
     })
 
@@ -213,6 +220,10 @@ $(document).ready(function() {
         }
     }
 
+    function updateDeckSize() {
+        $("#right-board > ul li:nth-of-type(3) p:last-of-type").text(deckSize)
+    }
+
     function alterHints(amount) {
         hints += amount;
         $("#right-board > ul li:first-of-type p:last-of-type").text(hints)
@@ -220,7 +231,7 @@ $(document).ready(function() {
 
     function alterBusts(amount) {
         busts += amount;
-        $("#right-board > ul li:last-of-type p:last-of-type").text(busts)
+        $("#right-board > ul li:nth-of-type(2) p:last-of-type").text(busts)
     }
 
     function toggleActionButtons(state) {
@@ -237,9 +248,9 @@ $(document).ready(function() {
     }
     function toggleTurnDisplay() {
         if (playerTurn) {
-            $("#turn > h1:first-child").text("Your Turn! Play a Card or Give a Hint")
+            $("#info-box").text("Your Turn! Play a Card from your hand or give your partner a hint. You can tell them all the cards of either one color or one value")
         } else {
-            $("#turn > h1:first-child").text("Your Partner's Turn!")
+            $("#info-box").text("Your Partner's Turn! Wait to see what they do.")
         }
     }
 

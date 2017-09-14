@@ -39,7 +39,6 @@ io.sockets.on("connection", function(socket) {
     })
 
     socket.on("give_hint", gameData => {
-        console.log("my room is " + gameData.room)
         let gameRoom = rooms[gameData.room],
             playerIdx = getPlayer(gameRoom, socket.id),
             otherPlayersHand = gameRoom.players[otherPlayerIdx(playerIdx)].hand;
@@ -93,6 +92,21 @@ io.sockets.on("connection", function(socket) {
             io.to(gameRoom.players[otherPlayerIdx(playerIdx)].id).emit("end_turn", new ReturnData(gameRoom, otherPlayerIdx(playerIdx)));
         }
     })
+
+    socket.on("discard_card", gameData => {
+        let gameRoom = rooms[gameData.room],
+            playerIdx = getPlayer(gameRoom, socket.id)
+
+        gameRoom.players[playerIdx].hand[gameData.cardHandIdx] = gameRoom.deck.deal();
+        gameRoom.hints += 1;
+
+        if (gameRoom.deck.length === 0) {
+            checkWin();
+        } else {
+            io.to(socket.id).emit("end_turn", new ReturnData(gameRoom, playerIdx));
+            io.to(gameRoom.players[otherPlayerIdx(playerIdx)].id).emit("end_turn", new ReturnData(gameRoom, otherPlayerIdx(playerIdx)));
+        }
+    })
 })
 
 //Returns the next available room or a new room and list of players to notify
@@ -133,14 +147,16 @@ function closeRoom(playerId) {
 
 function startGame(room) {
     let firstPlayerSetup = {
-            room : room.name,
-            hands : [room.players[0].hand, room.players[1].hand],
-            firstTurn : 0,
+            room: room.name,
+            hands: [room.players[0].hand, room.players[1].hand],
+            firstTurn: 0,
+            deckSize: room.deck.deck.length
         },
         secondPlayerSetup = {
-            room : room.name,
-            hands : [room.players[1].hand, room.players[0].hand],
-            firstTurn : 1
+            room: room.name,
+            hands: [room.players[1].hand, room.players[0].hand],
+            firstTurn: 1,
+            deckSize: room.deck.deck.length
         }
     io.to(room.players[0].id).emit("start_game", secondPlayerSetup);
     io.to(room.players[1].id).emit("start_game", firstPlayerSetup);
@@ -169,6 +185,7 @@ class ReturnData {
         this.room = gameRoom.name;
         this.busts = gameRoom.busts;
         this.hints = gameRoom.hints;
+        this.deckSize = gameRoom.deck.deck.length;
         this.hands = [
             gameRoom.players[otherPlayerIdx(playerIdx)].hand,
             gameRoom.players[playerIdx].hand,
