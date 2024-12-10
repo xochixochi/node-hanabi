@@ -1,0 +1,24 @@
+pool:
+  vmImage: ubuntu-latest
+variables:
+- group: Semgrep_Variables
+
+steps:
+- checkout: self
+  clean: true
+  fetchDepth: 20
+  persistCredentials: true
+# Replace main with the repository default branch if different.
+- script: |
+    python -m pip install --upgrade pip
+    pip install semgrep
+    if [ $(Build.SourceBranchName) = "main" ]; then
+        echo "Semgrep full scan"
+        semgrep ci
+    elif [ $(System.PullRequest.PullRequestId) -ge 0 ]; then
+        echo "Semgrep diff scan"
+        export SEMGREP_PR_ID=$(System.PullRequest.PullRequestId)
+        export SEMGREP_BASELINE_REF='origin/main'
+        git fetch origin main:origin/main
+        semgrep ci
+    fi
